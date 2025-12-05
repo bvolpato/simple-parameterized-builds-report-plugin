@@ -1,3 +1,4 @@
+<?jelly escape-by-default='true'?>
 <div>
   For a given Parameterized Project, this plugin shows the builds sorted by the parameters used to execute the builds
 </div>

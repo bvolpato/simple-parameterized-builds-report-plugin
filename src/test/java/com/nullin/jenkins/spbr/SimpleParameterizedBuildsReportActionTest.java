@@ -1,53 +1,58 @@
 package com.nullin.jenkins.spbr;
 
 import com.google.common.collect.Multimap;
-import hudson.model.*;
-import org.jvnet.hudson.test.HudsonTestCase;
+import hudson.model.AbstractBuild;
+import hudson.model.FreeStyleBuild;
+import hudson.model.FreeStyleProject;
+import hudson.model.ParametersDefinitionProperty;
+import hudson.model.StringParameterDefinition;
+import org.junit.Rule;
+import org.junit.Test;
+import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author nullin
  */
-public class SimpleParameterizedBuildsReportActionTest extends HudsonTestCase {
+public class SimpleParameterizedBuildsReportActionTest {
 
+    @Rule
+    public JenkinsRule j = new JenkinsRule();
+
+    @Test
     public void testBuildMapContents() throws Exception {
-        AbstractProject project = createFreeStyleProject();
+        FreeStyleProject project = j.createFreeStyleProject();
         SimpleParameterizedBuildsReportAction action = new SimpleParameterizedBuildsReportAction(project);
 
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(
                 new StringParameterDefinition("string", "defaultValue", "string description"));
         project.addProperty(pdp);
 
-        WebClient wc = new WebClient();
-        wc.setThrowExceptionOnFailingStatusCode(false);
-        wc.goTo("/job/" + project.getName() + "/buildWithParameters?delay=0sec");
-
-        Queue.Item q = jenkins.getQueue().getItem(project);
-        if (q != null) q.getFuture().get();
-        else Thread.sleep(1000);
-
-        Multimap<Map<String, String>, AbstractBuild> buildsMap = action.getBuildsMap(project.getBuilds());
-        assertEquals(buildsMap.keySet().size(), 1);
-        assertEquals(buildsMap.values().size(), 1);
+        // Schedule and wait for the build to complete
+        FreeStyleBuild build = j.buildAndAssertSuccess(project);
+        
+        @SuppressWarnings("unchecked")
+        Multimap<Map<String, String>, AbstractBuild> buildsMap = action.getBuildsMap((java.util.Collection) project.getBuilds());
+        assertEquals(1, buildsMap.keySet().size());
+        assertEquals(1, buildsMap.values().size());
     }
 
+    @Test
     public void testChangedParameterSet() throws Exception {
-        AbstractProject project = createFreeStyleProject();
+        FreeStyleProject project = j.createFreeStyleProject();
         SimpleParameterizedBuildsReportAction action = new SimpleParameterizedBuildsReportAction(project);
 
         ParametersDefinitionProperty pdp = new ParametersDefinitionProperty(
                 new StringParameterDefinition("string", "defaultValue", "string description"));
         project.addProperty(pdp);
 
-        WebClient wc = new WebClient();
-        wc.setThrowExceptionOnFailingStatusCode(false);
-        wc.goTo("/job/" + project.getName() + "/buildWithParameters?delay=0sec");
-
-        Queue.Item q = jenkins.getQueue().getItem(project);
-        if (q != null) q.getFuture().get();
-        else Thread.sleep(1000);
+        // First build
+        j.buildAndAssertSuccess(project);
 
         project.removeProperty(pdp);
         pdp = new ParametersDefinitionProperty(
@@ -55,27 +60,23 @@ public class SimpleParameterizedBuildsReportActionTest extends HudsonTestCase {
                 new StringParameterDefinition("string1", "defaultValue1", "string description"));
         project.addProperty(pdp);
 
-        wc.goTo("/job/" + project.getName() + "/buildWithParameters?delay=0sec");
-        q = jenkins.getQueue().getItem(project);
-        if (q != null) q.getFuture().get();
-        else Thread.sleep(1000);
+        // Second and third builds
+        j.buildAndAssertSuccess(project);
+        j.buildAndAssertSuccess(project);
 
-        wc.goTo("/job/" + project.getName() + "/buildWithParameters?delay=0sec");
-        q = jenkins.getQueue().getItem(project);
-        if (q != null) q.getFuture().get();
-        else Thread.sleep(1000);
+        // Fourth build with different value using ParameterizedJobMixIn
+        project.scheduleBuild2(0, new hudson.model.ParametersAction(
+                new hudson.model.StringParameterValue("string", "newValue"),
+                new hudson.model.StringParameterValue("string1", "defaultValue1")
+        )).get();
 
-        wc.goTo("/job/" + project.getName() + "/buildWithParameters?delay=0sec&string=newValue");
-        q = jenkins.getQueue().getItem(project);
-        if (q != null) q.getFuture().get();
-        else Thread.sleep(1000);
-
-        Multimap<Map<String, String>, AbstractBuild> buildsMap = action.getBuildsMap(project.getBuilds());
+        @SuppressWarnings("unchecked")
+        Multimap<Map<String, String>, AbstractBuild> buildsMap = action.getBuildsMap((java.util.Collection) project.getBuilds());
         assertEquals(3, buildsMap.keySet().size());
         assertTrue(buildsMap.keySet().contains(null));
         assertEquals(4, buildsMap.values().size());
 
-        Map<String, String> buildVars = new HashMap<String, String>();
+        Map<String, String> buildVars = new HashMap<>();
         buildVars.put("string", "defaultValue");
         assertEquals(1, buildsMap.get(null).size());
         assertEquals(buildVars, buildsMap.get(null).iterator().next().getBuildVariables());
@@ -86,5 +87,4 @@ public class SimpleParameterizedBuildsReportActionTest extends HudsonTestCase {
         buildVars.put("string", "newValue");
         assertEquals(1, buildsMap.get(buildVars).size());
     }
-
 }
