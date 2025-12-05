@@ -19,10 +19,16 @@ public class SPBRConfigJobProperty extends JobProperty<AbstractProject<?, ?>> {
 
     public final String includes;
     public final String excludes;
+    public final boolean showCurrentBuilds;
 
     public SPBRConfigJobProperty(String includes, String excludes) {
+        this(includes, excludes, false);
+    }
+
+    public SPBRConfigJobProperty(String includes, String excludes, boolean showCurrentBuilds) {
         this.includes = includes;
         this.excludes = excludes;
+        this.showCurrentBuilds = showCurrentBuilds;
     }
 
     @Extension
@@ -48,7 +54,8 @@ public class SPBRConfigJobProperty extends JobProperty<AbstractProject<?, ?>> {
 
             String includes = config.getString("includes");
             String excludes = config.getString("excludes");
-            return new SPBRConfigJobProperty(includes, excludes);
+            boolean showCurrentBuilds = config.optBoolean("showCurrentBuilds", false);
+            return new SPBRConfigJobProperty(includes, excludes, showCurrentBuilds);
         }
 
         @Override

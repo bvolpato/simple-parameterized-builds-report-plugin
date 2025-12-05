@@ -62,6 +62,7 @@ public class SimpleParameterizedBuildsReportAction implements Action {
         //selected params will contain the set of properties to filter by
         List<String> selectedParams = Collections.emptyList();
         boolean isInclude = true;
+        boolean showCurrentBuilds = false;
         SPBRConfigJobProperty configJobProperty = project.getProperty(SPBRConfigJobProperty.class);
         if (configJobProperty != null) {
             String includes = configJobProperty.includes;
@@ -72,6 +73,7 @@ public class SimpleParameterizedBuildsReportAction implements Action {
                 selectedParams = getParameters(excludes);
                 isInclude = false;
             }
+            showCurrentBuilds = configJobProperty.showCurrentBuilds;
         }
 
         ParametersDefinitionProperty paramDefProp = project.getProperty(ParametersDefinitionProperty.class);
@@ -89,8 +91,8 @@ public class SimpleParameterizedBuildsReportAction implements Action {
         }
 
         for (AbstractBuild build : builds) {
-            if (build.isBuilding()) {
-                //skip over builds that are still running
+            if (build.isBuilding() && !showCurrentBuilds) {
+                //skip over builds that are still running (unless showCurrentBuilds is enabled)
                 continue;
             }
 

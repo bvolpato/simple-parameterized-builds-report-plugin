@@ -9,5 +9,9 @@
         <f:entry title="Excludes" field="excludes">
             <f:textbox name="spbr.excludes" value="${instance.excludes}"/>
         </f:entry>
+        <f:entry title="Show Current Builds" field="showCurrentBuilds">
+            <f:checkbox name="spbr.showCurrentBuilds" checked="${instance.showCurrentBuilds}"
+                        title="Show builds that are currently running in the report"/>
+        </f:entry>
     </f:optionalBlock>
 </j:jelly>
