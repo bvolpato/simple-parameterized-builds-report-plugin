@@ -1,6 +1,7 @@
 package com.nullin.jenkins.spbr.MatrixBuildsReportAction
 
 import com.google.common.collect.Multimap
+import com.nullin.jenkins.spbr.SPBRGlobalConfiguration
 import hudson.model.AbstractBuild
 
 l = namespace(lib.LayoutTagLib)
@@ -51,7 +52,8 @@ private showTable(/*Collection<AbstractBuild>*/ builds) {
                 }
 
                 for (build in _builds) {
-                    td(bgcolor: "${build.getIconColor().getHtmlBaseColor()}", padding: 5) {
+                    def bgColor = getBuildColor(build)
+                    td(bgcolor: "${bgColor}", padding: 5) {
                         showEntry(build)
                     }
                   }
@@ -82,4 +84,14 @@ private def showBuildDetails(/*AbstractBuild*/ build) {
           text(build.displayName)
           br()
       }
+}
+
+private def getBuildColor(/*AbstractBuild*/ build) {
+    def iconColor = build.getIconColor()
+    def defaultColor = iconColor.getHtmlBaseColor()
+    def globalConfig = SPBRGlobalConfiguration.get()
+    if (globalConfig != null) {
+        return globalConfig.getColorForBuild(iconColor.toString(), defaultColor)
+    }
+    return defaultColor
 }

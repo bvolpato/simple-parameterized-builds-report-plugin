@@ -1,0 +1,38 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:section title="Simple Parameterized Builds Report - Colors">
+        <f:description>
+            Customize the background colors used in the Parameterized Builds Report table.
+            Leave blank to use the default colors.
+            You can use any valid CSS color value (e.g., #4CAF50, rgb(76, 175, 80), lightgreen).
+        </f:description>
+
+        <f:entry title="Success Color" field="successColor" 
+                 description="Background color for successful builds (default: blue)">
+            <f:textbox value="${instance.successColor}" placeholder="${instance.successColorOrDefault}"/>
+        </f:entry>
+
+        <f:entry title="Failure Color" field="failureColor"
+                 description="Background color for failed builds (default: red)">
+            <f:textbox value="${instance.failureColor}" placeholder="${instance.failureColorOrDefault}"/>
+        </f:entry>
+
+        <f:entry title="Unstable Color" field="unstableColor"
+                 description="Background color for unstable builds (default: yellow)">
+            <f:textbox value="${instance.unstableColor}" placeholder="${instance.unstableColorOrDefault}"/>
+        </f:entry>
+
+        <f:entry title="Aborted Color" field="abortedColor"
+                 description="Background color for aborted builds (default: gray)">
+            <f:textbox value="${instance.abortedColor}" placeholder="${instance.abortedColorOrDefault}"/>
+        </f:entry>
+
+        <f:entry title="Not Built Color" field="notBuiltColor"
+                 description="Background color for not-built/disabled builds (default: gray)">
+            <f:textbox value="${instance.notBuiltColor}" placeholder="${instance.notBuiltColorOrDefault}"/>
+        </f:entry>
+    </f:section>
+
+</j:jelly>

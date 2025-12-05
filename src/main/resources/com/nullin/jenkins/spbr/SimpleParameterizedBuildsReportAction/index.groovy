@@ -1,6 +1,7 @@
 package com.nullin.jenkins.spbr.SimpleParameterizedBuildsReportAction
 
 import com.google.common.collect.Multimap
+import com.nullin.jenkins.spbr.SPBRGlobalConfiguration
 import hudson.model.AbstractBuild
 
 l = namespace(lib.LayoutTagLib)
@@ -52,7 +53,8 @@ private showTable(/*Collection<AbstractBuild>*/ builds) {
                 }
 
                 for (build in _builds) {
-                    td(style: "padding:5px;background-color:${build.getIconColor().getHtmlBaseColor()};") {
+                    def bgColor = getBuildColor(build)
+                    td(style: "padding:5px;background-color:${bgColor};") {
                         showBuildDetails(build)
                     }
                   }
@@ -83,4 +85,14 @@ private def showBuildDetails(/*AbstractBuild*/ build) {
           text(build.displayName)
           br()
       }
+}
+
+private def getBuildColor(/*AbstractBuild*/ build) {
+    def iconColor = build.getIconColor()
+    def defaultColor = iconColor.getHtmlBaseColor()
+    def globalConfig = SPBRGlobalConfiguration.get()
+    if (globalConfig != null) {
+        return globalConfig.getColorForBuild(iconColor.toString(), defaultColor)
+    }
+    return defaultColor
 }
